@@ -1,48 +1,81 @@
-type Selector<
-    P = any,
-    S extends Record<number | string, any> = Record<number | string, any>
-> = P extends undefined ? (state: any) => S : (state: any, payload: P) => S;
+type Name = string;
+type Path = string;
 
-type Updater<P = any, S = any> = (state: S, payload: P) => S | void;
+type Updater<State = any, Payload = any> = (
+    state: State,
+    payload: Payload
+) => State | void;
 
-type Store<
-    State,
-    Selectors extends Record<string, Selector>,
-    Updaters extends Record<string, Updater>
-> = {
-    state: { v: State };
-    subscribers: Map<number, () => void>;
-    selectors: Selectors;
-    updaters: Updaters;
-    subscribe: (callback: () => void) => () => void;
+type Section<State = any, Payload = any> = {
+    state: State;
+    updater: Updater<State, Payload>;
 };
 
-const createStore = <
-    State,
-    Selectors extends Record<string, Selector> = Record<string, never>,
-    Updaters extends Record<string, Updater> = Record<string, never>
->(
-    state: State,
-    selectors: Selectors,
-    updaters: Updaters
-): Store<State, Selectors, Updaters> => {
-    let id = 0;
-    const subscribers = new Map<number, () => void>();
+type Store<SectionMap extends Record<Name, Section> = Record<Name, Section>> = {
+    state: {
+        [name in keyof SectionMap]: Record<Path, SectionMap[name]['state']>;
+    };
+    subscribers: {
+        [name in keyof SectionMap]: Record<Path, Record<number, () => void>>;
+    };
+    sectionMap: SectionMap;
+    subscribe: (
+        callback: () => void,
+        name: keyof SectionMap,
+        path: Path
+    ) => () => void;
+};
+
+const createStore = <SectionMap extends Record<Name, Section>>(
+    sectionMap: SectionMap
+): Store<SectionMap> => {
+    let counter = 0;
+    const names: (keyof SectionMap)[] = Object.keys(sectionMap);
+    const subscribers = names.reduce(
+        (pre, name) => {
+            pre[name] = {};
+            return pre;
+        },
+        {} as {
+            [name in keyof SectionMap]: Record<
+                Path,
+                Record<number, () => void>
+            >;
+        }
+    );
 
     return {
-        state: { v: state },
+        state: names.reduce(
+            (pre, name) => {
+                pre[name] = {};
+                return pre;
+            },
+            {} as {
+                [name in keyof SectionMap]: Record<
+                    Path,
+                    SectionMap[name]['state']
+                >;
+            }
+        ),
         subscribers,
-        selectors,
-        updaters,
-        subscribe: callback => {
-            const _id = id++;
-            subscribers.set(_id, callback);
+        sectionMap,
+        subscribe: (callback, name, path) => {
+            const id = counter++;
+            if (subscribers[name][path] !== undefined) {
+                subscribers[name][path][id] = callback;
+            } else {
+                (subscribers[name] as Record<Path, Record<number, () => void>>)[
+                    path
+                ] = {
+                    [id]: callback
+                };
+            }
             return () => {
-                subscribers.delete(_id);
+                delete subscribers[name][path][id];
             };
         }
     };
 };
 
-export type { Selector, Updater, Store };
+export type { Name, Path, Updater, Section, Store };
 export { createStore };

@@ -27,7 +27,7 @@
     //  "noPropertyAccessFromIndexSignature": false,        /* Enforces using indexed accessors for keys declared using an indexed type. */
 
     /* Modules */
-    "module": "ES2022",                                     /* Specify what module code is generated. */
+    "module": "CommonJS",                                   /* Specify what module code is generated. */
     "moduleResolution": "node",                             /* Specify how TypeScript looks up a file from a given module specifier. */
     "allowUmdGlobalAccess": true,                           /* Allow accessing UMD globals from modules. */
     "resolveJsonModule": true,                              /* Enable importing .json files. */
@@ -40,10 +40,10 @@
     //  "typeRoots": [],                                    /* Specify multiple folders that act like './node_modules/@types'. */
 
     /* Emit */
-    "declaration": true,                                    /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
-    "declarationMap": true,                                 /* Create sourcemaps for d.ts files. */
-    "outDir": "dist",                                       /* Specify an output folder for all emitted files. */
-    "sourceMap": true,                                      /* Create source map files for emitted JavaScript files. */
+    //  "declaration": false,                               /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    //  "declarationMap": false,                            /* Create sourcemaps for d.ts files. */
+    //  "outDir": "dist",                                   /* Specify an output folder for all emitted files. */
+    //  "sourceMap": false,                                 /* Create source map files for emitted JavaScript files. */
     //  "noEmit": false,                                    /* Disable emitting files from a compilation. */
     //  "emitBOM": false,                                   /* Emit a UTF-8 Byte Order Mark (BOM) in the beginning of output files. */
     //  "importHelpers": false,                             /* Allow importing helper functions from tslib once per project, instead of including them per-file. */
@@ -66,7 +66,7 @@
 
     /* JavaScript Support */
     "allowJs": true,                                        /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
-    //  "checkJs": false,                                   /* Enable error reporting in type-checked JavaScript files. */
+    "checkJs": false,                                   /* Enable error reporting in type-checked JavaScript files. */
     //  "maxNodeModuleJsDepth": 0,                          /* Specify the maximum folder depth used for checking JavaScript files from 'node_modules'. Only applicable with 'allowJs'. */
 
     /* Editor Support */
@@ -75,7 +75,7 @@
 
     /* Interop Constraints */
     "isolatedModules": true,                                /* Ensure that each file can be safely transpiled without relying on other imports. */
-    //  "esModuleInterop": true,                            /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "esModuleInterop": false,                               /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
     "allowSyntheticDefaultImports": true,                   /* Allow 'import x from y' when a module doesn't have a default export. */
     "forceConsistentCasingInFileNames": true,               /* Ensure that casing is correct in imports. */
     //  "preserveSymlinks": false,                          /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
@@ -109,7 +109,7 @@
 
     /* Projects */
     //  "incremental": false,                               /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
-    //  "composite": false,                                 /* Enable constraints that allow a TypeScript project to be used with project references. */
+    "composite": true,                                      /* Enable constraints that allow a TypeScript project to be used with project references. */
     //  "tsBuildInfoFile": "",                              /* Specify the path to .tsbuildinfo incremental compilation file. */
     //  "disableSourceOfProjectReferenceRedirect": false,   /* Disable preferring source files instead of declaration files when referencing composite projects. */
     //  "disableSolutionSearching": false,                  /* Opt a project out of multi-project reference checking when editing. */
