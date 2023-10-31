@@ -7,11 +7,18 @@ type UpdatingKeyAndValue<T extends Record<string, unknown>> = {
     };
 }[keyof T];
 
-const simpleUpdaterGenerator =
+const propertyUpdaterGenerator =
     <S extends Record<string, unknown>>() =>
     (state: S, { key, value }: UpdatingKeyAndValue<S>) => ({
         ...state,
         [key]: value
+    });
+
+const mergeUpdaterGenerator =
+    <S extends Record<string, unknown>>() =>
+    (state: S, payload: Partial<S>) => ({
+        ...state,
+        ...payload
     });
 
 type SectionArrayState<S> = {
@@ -60,6 +67,7 @@ const sectionArrayGenerator = <S, P>(
 export {
     type UpdatingKeyAndValue,
     type SectionArrayState,
-    simpleUpdaterGenerator,
+    propertyUpdaterGenerator,
+    mergeUpdaterGenerator,
     sectionArrayGenerator
 };

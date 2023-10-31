@@ -5,7 +5,8 @@ export {
     type SectionArrayState,
     type UpdatingKeyAndValue,
     sectionArrayGenerator,
-    simpleUpdaterGenerator
+    propertyUpdaterGenerator,
+    mergeUpdaterGenerator
 } from './util';
 export {
     type Store,
