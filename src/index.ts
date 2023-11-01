@@ -2,11 +2,13 @@ export { YasmContext } from './Context';
 export { useYasmState } from './useYasmState';
 export { usePurgeYasmState } from './usePurgeYasmState';
 export {
-    type SectionArrayState,
+    type ArraySection,
+    type ObjectSection,
     type UpdatingKeyAndValue,
-    sectionArrayGenerator,
-    propertyUpdaterGenerator,
-    mergeUpdaterGenerator
+    arraySectionGenerator,
+    mergeUpdaterGenerator,
+    objectSectionGenerator,
+    propertyUpdaterGenerator
 } from './util';
 export {
     type Store,

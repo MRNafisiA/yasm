@@ -6,16 +6,29 @@ const usePurgeYasmState = () => {
     return useCallback(
         (pathStartsWith: string) => {
             if (process.env.NODE_ENV !== 'production') {
+                console.debug(`purging path starts with ${pathStartsWith}`);
                 console.debug('before:');
                 console.debug(JSON.parse(JSON.stringify(store.state)));
             }
             for (const name in store.state) {
-                for (const id in store.state[name]) {
-                    if (id.startsWith(pathStartsWith)) {
-                        delete store.state[name][id];
-                        delete store.subscribers[name][id];
+                for (const path in store.state[name]) {
+                    if (path.startsWith(pathStartsWith)) {
+                        delete store.state[name][path];
+                        delete store.subscribers[name][path];
                     }
                 }
+            }
+            for (const name in store.memo) {
+                for (const path in store.memo[name]) {
+                    if (path.startsWith(pathStartsWith)) {
+                        delete store.memo[name][path];
+                    }
+                }
+            }
+            for (const name in store.pathRegistry) {
+                store.pathRegistry[name] = store.pathRegistry[name].filter(
+                    path => !path.startsWith(pathStartsWith)
+                );
             }
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('after:');

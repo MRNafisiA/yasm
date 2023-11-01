@@ -1,62 +1,83 @@
 type Name = string;
 type Path = string;
 
-type Updater<State = any, Payload = any> = (
-    state: State,
-    payload: Payload
-) => State | void;
+type Updater<S = any, P = any> = (state: S, payload: P) => S | void;
 
-type Section<State = any, Payload = any> = {
-    state: State;
-    updater: Updater<State, Payload>;
+type PayloadAndPayloadCreator<
+    SM extends Record<Name, Section>,
+    N extends keyof SM
+> =
+    | Parameters<SM[N]['updater']>[1]
+    | ((state: SM[N]['state']) => Parameters<SM[N]['updater']>[1]);
+
+type Router<S = any, NS = any> = {
+    selectByPathQuery: (
+        state: S,
+        pathQuery: string
+    ) => [state: NS, pathQuery: string];
+    updateByPathQuery: (
+        state: S,
+        pathQuery: string,
+        getValue: (state: NS, pathQuery: string) => NS
+    ) => S;
 };
 
-type Store<SectionMap extends Record<Name, Section> = Record<Name, Section>> = {
-    state: {
-        [name in keyof SectionMap]: Record<Path, SectionMap[name]['state']>;
-    };
-    subscribers: {
-        [name in keyof SectionMap]: Record<Path, Record<number, () => void>>;
-    };
-    sectionMap: SectionMap;
-    subscribe: (
-        callback: () => void,
-        name: keyof SectionMap,
-        path: Path
-    ) => () => void;
+type Routing<S = any> = Record<Name, Router<S>>;
+
+type StateBySectionMap<SM extends Record<Name, Section>> = {
+    [name in keyof SM]: Record<Path, SM[name]['state']>;
 };
 
-const createStore = <SectionMap extends Record<Name, Section>>(
-    sectionMap: SectionMap
-): Store<SectionMap> => {
-    let counter = 0;
-    const names: (keyof SectionMap)[] = Object.keys(sectionMap);
-    const subscribers = names.reduce(
-        (pre, name) => {
-            pre[name] = {};
-            return pre;
-        },
-        {} as {
-            [name in keyof SectionMap]: Record<
-                Path,
-                Record<number, () => void>
-            >;
+type SubscribersBySectionMap<SM extends Record<Name, Section>> = {
+    [name in keyof SM]: Record<Path, Record<number, () => void>>;
+};
+
+type RoutingPlan<SM extends Record<Name, Section>> = {
+    [name in keyof SM]: Name[];
+};
+
+type Memo<SM extends Record<Name, Section>> = {
+    [name in keyof SM]: Record<
+        Path,
+        {
+            subscribe: (callback: () => void) => () => void;
+            getState: () => SM[name]['state'];
+            updater: (payload: PayloadAndPayloadCreator<SM, name>) => void;
         }
-    );
+    >;
+};
+
+type Section<S = any, P = any> = {
+    state: S;
+    updater: Updater<S, P>;
+    routing?: Routing<S>;
+};
+
+type Store<SM extends Record<Name, Section> = Record<Name, Section>> = {
+    state: StateBySectionMap<SM>;
+    subscribers: SubscribersBySectionMap<SM>;
+    sectionMap: SM;
+    subscribe: (callback: () => void, name: keyof SM, path: Path) => () => void;
+    pathRegistry: Record<Name, Path[]>;
+    routingPlan: RoutingPlan<SM>;
+    memo: Memo<SM>;
+};
+
+const createStore = <SM extends Record<Name, Section>>(
+    sectionMap: SM
+): Store<SM> => {
+    let counter = 0;
+    const names: (keyof SM)[] = Object.keys(sectionMap);
+    const subscribers = names.reduce((pre, name) => {
+        pre[name] = {};
+        return pre;
+    }, {} as SubscribersBySectionMap<SM>);
 
     return {
-        state: names.reduce(
-            (pre, name) => {
-                pre[name] = {};
-                return pre;
-            },
-            {} as {
-                [name in keyof SectionMap]: Record<
-                    Path,
-                    SectionMap[name]['state']
-                >;
-            }
-        ),
+        state: names.reduce((pre, name) => {
+            pre[name] = {};
+            return pre;
+        }, {} as StateBySectionMap<SM>),
         subscribers,
         sectionMap,
         subscribe: (callback, name, path) => {
@@ -73,9 +94,53 @@ const createStore = <SectionMap extends Record<Name, Section>>(
             return () => {
                 delete subscribers[name][path][id];
             };
-        }
+        },
+        pathRegistry: names.reduce((pre, name) => {
+            if (sectionMap[name].routing !== undefined) {
+                pre[name as Name] = [];
+            }
+            return pre;
+        }, {} as Record<Name, Path[]>),
+        routingPlan: names.reduce((pre, name) => {
+            const routing = sectionMap[name].routing;
+            if (routing !== undefined) {
+                const routingNames = Object.keys(routing);
+                for (const routingName of routingNames) {
+                    if (process.env.NODE_ENV !== 'production') {
+                        if (sectionMap[routingName] === undefined) {
+                            console.error(
+                                `There is no ${routingName} section to have a route on!`
+                            );
+                        }
+                    }
+                    if (pre[routingName] === undefined) {
+                        pre[routingName as keyof SM] = [name as Name];
+                    } else {
+                        pre[routingName].push(name as Name);
+                    }
+                }
+            }
+            return pre;
+        }, {} as RoutingPlan<SM>),
+        memo: names.reduce((pre, name) => {
+            pre[name] = {};
+            return pre;
+        }, {} as Memo<SM>)
     };
 };
 
-export type { Name, Path, Updater, Section, Store };
+export type {
+    Name,
+    Path,
+    Updater,
+    PayloadAndPayloadCreator,
+    Router,
+    Routing,
+    StateBySectionMap,
+    SubscribersBySectionMap,
+    RoutingPlan,
+    Memo,
+    Section,
+    Store
+};
 export { createStore };
