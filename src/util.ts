@@ -68,7 +68,13 @@ const arraySectionGenerator = <S, P>(
         }
         if (editingItems !== undefined) {
             for (const { id, itemPayload } of editingItems) {
-                baseSection.updater(state.map[id], itemPayload);
+                const newValue = baseSection.updater(
+                    state.map[id],
+                    itemPayload
+                );
+                if (newValue !== undefined) {
+                    state.map[id] = newValue;
+                }
             }
         }
         if (addingItems !== undefined) {

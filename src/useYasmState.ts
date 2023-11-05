@@ -68,7 +68,14 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
                       )(getState())
                     : payload;
             if (process.env.NODE_ENV !== 'production') {
-                console.debug(`${routedName} ${routedPath}`);
+                console.debug('----start----');
+                console.debug(
+                    `${name as Name} ${path}${
+                        name !== routedName
+                            ? ` (${routedName} ${routedPath})`
+                            : ''
+                    }`
+                );
                 console.debug(JSON.parse(JSON.stringify(_payload)));
                 console.debug('before:');
                 console.debug(JSON.parse(JSON.stringify(store.state)));
@@ -77,7 +84,7 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('after:');
                 console.debug(JSON.parse(JSON.stringify(store.state)));
-                console.debug('--------');
+                console.debug('----end----');
             }
             for (const key in store.subscribers[routedName][routedPath]) {
                 store.subscribers[routedName][routedPath][key]();
