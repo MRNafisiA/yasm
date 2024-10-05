@@ -1,14 +1,7 @@
 import { produce } from 'immer';
 import { YasmContext } from './Context';
 import { useCallback, useContext, useSyncExternalStore } from 'react';
-import {
-    Name,
-    Path,
-    Store,
-    Section,
-    StateBySectionMap,
-    PayloadAndPayloadCreator
-} from './createStore';
+import { Name, Path, PayloadAndPayloadCreator, Section, StateBySectionMap, Store } from './createStore';
 
 const useYasmState = <SM extends Record<Name, Section>, N extends keyof SM, S>(
     name: N,
@@ -47,7 +40,7 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
         name,
         path
     );
-    if (name === routedName) {
+    if (name === routedName && store.state[name][path] !== undefined) {
         (store.state[name] as Record<Path, SM[N]['state']>)[path] =
             store.sectionMap[name].state;
         if (store.sectionMap[name].routing !== undefined) {
@@ -62,10 +55,10 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
             const _payload =
                 typeof payload === 'function'
                     ? (
-                          payload as (
-                              state: SM[N]['state']
-                          ) => Parameters<SM[N]['updater']>[1]
-                      )(getState())
+                        payload as (
+                            state: SM[N]['state']
+                        ) => Parameters<SM[N]['updater']>[1]
+                    )(getState())
                     : payload;
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('----start----');
@@ -124,11 +117,11 @@ const getExtraRoutes = <SM extends Record<Name, Section>, N extends keyof SM>(
     path: Path
 ):
     | [
-          routedName: Name,
-          routedPath: Path,
-          getState: () => SM[N]['state'],
-          updater: (payload: Parameters<SM[N]['updater']>[1]) => SM[N]['state']
-      ]
+    routedName: Name,
+    routedPath: Path,
+    getState: () => SM[N]['state'],
+    updater: (payload: Parameters<SM[N]['updater']>[1]) => SM[N]['state']
+]
     | undefined => {
     const firstName = names[0];
     if (process.env.NODE_ENV !== 'production') {
@@ -149,8 +142,8 @@ const getExtraRoutes = <SM extends Record<Name, Section>, N extends keyof SM>(
         if (allPaths.length > 1) {
             console.error(
                 'multiple routing candidates found.\n' +
-                    'your direct paths can not be suffix of each other.\n' +
-                    `paths: ${JSON.stringify(allPaths)}`
+                'your direct paths can not be suffix of each other.\n' +
+                `paths: ${JSON.stringify(allPaths)}`
             );
         }
     }
@@ -168,7 +161,7 @@ const getExtraRoutes = <SM extends Record<Name, Section>, N extends keyof SM>(
                     return (state, pathQuery) =>
                         store.sectionMap[current].routing![
                             names[i]
-                        ].selectByPathQuery(...pre(state, pathQuery));
+                            ].selectByPathQuery(...pre(state, pathQuery));
                 },
                 (state: StateBySectionMap<SM>, pathQuery: string) =>
                     [state[name][foundPath], pathQuery] as [
@@ -185,7 +178,7 @@ const getExtraRoutes = <SM extends Record<Name, Section>, N extends keyof SM>(
                     return (state, pathQuery, payload) =>
                         store.sectionMap[reversedAllNames[i + 1]].routing![
                             current
-                        ].updateByPathQuery(
+                            ].updateByPathQuery(
                             state,
                             pathQuery,
                             (state, pathQuery) => pre(state, pathQuery, payload)
