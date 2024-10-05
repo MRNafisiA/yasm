@@ -40,7 +40,7 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
         name,
         path
     );
-    if (name === routedName && store.state[name][path] !== undefined) {
+    if (name === routedName && store.state[name][path] === undefined) {
         (store.state[name] as Record<Path, SM[N]['state']>)[path] =
             store.sectionMap[name].state;
         if (store.sectionMap[name].routing !== undefined) {
