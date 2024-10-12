@@ -56,7 +56,7 @@ const arraySectionGenerator = <S, P>(
     sectionName: Name,
     baseSection: Section<S, P>
 ): ArraySection<S, P> => ({
-    state: { order: [], map: {} },
+    initialState: { order: [], map: {} },
     updater: (state, { order, addingItems, editingItems, removingIDs }) => {
         if (order !== undefined) {
             state.order = order;
@@ -80,7 +80,7 @@ const arraySectionGenerator = <S, P>(
         if (addingItems !== undefined) {
             for (const { id, partialState } of addingItems) {
                 state.map[id] = {
-                    ...baseSection.state,
+                    ...baseSection.initialState,
                     ...partialState
                 };
             }
@@ -150,7 +150,7 @@ const extractObjectIndexAndRemainedPathQuery = (
 const objectSectionGenerator = <SM extends Record<string, SectionWithName>>(
     sectionMap: SM
 ): ObjectSection<SM> => ({
-    state: Object.fromEntries(
+    initialState: Object.fromEntries(
         Object.entries(sectionMap).map(([key, { state }]) => [key, state])
     ) as ObjectSectionState<SM>,
     updater: (state, payload) => {
