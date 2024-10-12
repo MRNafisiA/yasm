@@ -10,38 +10,80 @@ import {
     Store
 } from './createStore';
 
-const useYasmState = <SM extends Record<Name, Section>, N extends keyof SM, S>(
+// Overload 1: Basic use with no selector
+function useYasmState<SM extends Record<Name, Section>, N extends keyof SM>(
+    name: N,
+    path: Path
+): [
+    SM[N]['initialState'],
+    (payload: PayloadAndPayloadCreator<SM, N>) => SM[N]['initialState'] | void
+];
+
+// Overload 2: Use with a selector
+function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
     name: N,
     path: Path,
-    options?: {
-        customSelector?: (state: SM[N]['initialState']) => S;
+    selector: (state: SM[N]['initialState']) => S
+): [
+    S,
+    (payload: PayloadAndPayloadCreator<SM, N>) => SM[N]['initialState'] | void
+];
+
+// Overload 3: Use with options object (selector and/or overrideInitialState)
+function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
+    name: N,
+    path: Path,
+    options: {
+        selector?: (state: SM[N]['initialState']) => S;
         overrideInitialState?: Partial<SM[N]['initialState']>;
     }
 ): [
     unknown extends S ? SM[N]['initialState'] : S,
     (payload: PayloadAndPayloadCreator<SM, N>) => SM[N]['initialState'] | void
-] => {
+];
+
+function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
+    name: N,
+    path: Path,
+    thirdParam?:
+        | ((state: SM[N]['initialState']) => S)
+        | {
+              selector?: (state: SM[N]['initialState']) => S;
+              overrideInitialState?: Partial<SM[N]['initialState']>;
+          }
+): [
+    unknown extends S ? SM[N]['initialState'] : S,
+    (payload: PayloadAndPayloadCreator<SM, N>) => SM[N]['initialState'] | void
+] {
     const store = useContext(YasmContext) as Store<SM>;
-    const { customSelector, overrideInitialState } = options || {};
+
+    let selector: ((state: SM[N]['initialState']) => S) | undefined;
+    let overrideInitialState: Partial<SM[N]['initialState']> | undefined;
+
+    if (typeof thirdParam === 'function') {
+        selector = thirdParam;
+    } else if (thirdParam && typeof thirdParam === 'object') {
+        selector = thirdParam.selector;
+        overrideInitialState = thirdParam.overrideInitialState;
+    }
 
     if (store.memo[name][path] === undefined) {
         init(store, name, path, overrideInitialState);
     }
 
     const getState = store.memo[name][path].getState;
+
     return [
         useSyncExternalStore(
             store.memo[name][path].subscribe,
             useCallback(() => {
                 const state = getState();
-                return customSelector !== undefined
-                    ? customSelector(state)
-                    : state;
-            }, [getState, customSelector])
+                return selector !== undefined ? selector(state) : state;
+            }, [getState, selector])
         ),
         store.memo[name][path].updater
     ];
-};
+}
 
 const init = <SM extends Record<Name, Section>, N extends keyof SM>(
     store: Store<SM>,
@@ -79,6 +121,7 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
                           ) => Parameters<SM[N]['updater']>[1]
                       )(getState())
                     : payload;
+
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('----start----');
                 console.debug(
@@ -92,12 +135,15 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
                 console.debug('before:');
                 console.debug(JSON.parse(JSON.stringify(store.state)));
             }
+
             store.state[routedName][routedPath] = updater(_payload);
+
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('after:');
                 console.debug(JSON.parse(JSON.stringify(store.state)));
                 console.debug('----end----');
             }
+
             for (const key in store.subscribers[routedName][routedPath]) {
                 store.subscribers[routedName][routedPath][key]();
             }
