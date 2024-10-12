@@ -200,20 +200,75 @@ const objectSectionGenerator = <SM extends Record<string, SectionWithName>>(
     )
 });
 
+const fieldSettersCache = new WeakMap<
+    (
+        payload: Partial<unknown> | ((state: unknown) => Partial<unknown>)
+    ) => void | unknown, // The updateState function as the key
+    Map<
+        string | number | symbol,
+        (valueOrCallback: unknown | ((prev: unknown) => unknown)) => void
+    >
+>();
+
+function getFieldSetter<TSection, TField extends keyof TSection>(
+    updateState: (
+        payload: Partial<TSection> | ((state: TSection) => Partial<TSection>)
+    ) => void | TSection,
+    field: TField
+) {
+    if (!fieldSettersCache.has(updateState)) {
+        fieldSettersCache.set(updateState, new Map());
+    }
+
+    const fieldsCache = fieldSettersCache.get(updateState)!;
+
+    if (!fieldsCache.has(field)) {
+        const setterFunction = (
+            valueOrCallback:
+                | TSection[TField]
+                | ((prev: TSection[TField]) => TSection[TField])
+        ) => {
+            updateState(
+                prev =>
+                    ({
+                        [field]:
+                            typeof valueOrCallback === 'function'
+                                ? (
+                                      valueOrCallback as (
+                                          prevValue: TSection[TField]
+                                      ) => TSection[TField]
+                                  )(prev[field])
+                                : valueOrCallback
+                    } as unknown as Partial<TSection>)
+            );
+        };
+
+        fieldsCache.set(
+            field,
+            setterFunction as (
+                valueOrCallback: unknown | ((prev: unknown) => unknown)
+            ) => void
+        );
+    }
+
+    return fieldsCache.get(field) as (
+        valueOrCallback:
+            | TSection[TField]
+            | ((prev: TSection[TField]) => TSection[TField])
+    ) => void;
+}
+
 export {
-    type UpdatingKeyAndValue,
-    propertyUpdaterGenerator,
-    mergeUpdaterGenerator
-};
-export {
-    type ArraySection,
+    arraySectionGenerator,
     extractArrayIndexAndRemainedPathQuery,
-    arraySectionGenerator
-};
-export {
-    type SectionWithName,
-    type ObjectSectionState,
-    type ObjectSection,
     extractObjectIndexAndRemainedPathQuery,
-    objectSectionGenerator
+    getFieldSetter,
+    mergeUpdaterGenerator,
+    objectSectionGenerator,
+    propertyUpdaterGenerator,
+    type ArraySection,
+    type ObjectSection,
+    type ObjectSectionState,
+    type SectionWithName,
+    type UpdatingKeyAndValue
 };
