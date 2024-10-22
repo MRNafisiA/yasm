@@ -10,26 +10,17 @@ import {
     Store
 } from './createStore';
 
-// Overload 1: Basic use with no selector
-function useYasmState<SM extends Record<Name, Section>, N extends keyof SM>(
-    name: N,
-    path: Path
-): [
-    SM[N]['initialState'],
-    (payload: PayloadAndPayloadCreator<SM, N>) => SM[N]['initialState'] | void
-];
-
-// Overload 2: Use with a selector
+// Overload 1: Basic use (no selector) or use with a selector
 function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
     name: N,
     path: Path,
-    selector: (state: SM[N]['initialState']) => S
+    selector?: (state: SM[N]['initialState']) => S
 ): [
-    S,
+    unknown extends S ? SM[N]['initialState'] : S,
     (payload: PayloadAndPayloadCreator<SM, N>) => SM[N]['initialState'] | void
 ];
 
-// Overload 3: Use with options object (selector and/or overrideInitialState)
+// Overload 2: Use with options object (selector and/or overrideInitialState)
 function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
     name: N,
     path: Path,
