@@ -8,7 +8,7 @@ type PayloadAndPayloadCreator<
     N extends keyof SM
 > =
     | Parameters<SM[N]['updater']>[1]
-    | ((state: SM[N]['state']) => Parameters<SM[N]['updater']>[1]);
+    | ((state: SM[N]['initialState']) => Parameters<SM[N]['updater']>[1]);
 
 type Router<S = any, NS = any> = {
     selectByPathQuery: (
@@ -25,7 +25,7 @@ type Router<S = any, NS = any> = {
 type Routing<S = any> = Record<Name, Router<S>>;
 
 type StateBySectionMap<SM extends Record<Name, Section>> = {
-    [name in keyof SM]: Record<Path, SM[name]['state']>;
+    [name in keyof SM]: Record<Path, SM[name]['initialState']>;
 };
 
 type SubscribersBySectionMap<SM extends Record<Name, Section>> = {
@@ -41,14 +41,14 @@ type Memo<SM extends Record<Name, Section>> = {
         Path,
         {
             subscribe: (callback: () => void) => () => void;
-            getState: () => SM[name]['state'];
+            getState: () => SM[name]['initialState'];
             updater: (payload: PayloadAndPayloadCreator<SM, name>) => void;
         }
     >;
 };
 
 type Section<S = any, P = any> = {
-    state: S;
+    initialState: S;
     updater: Updater<S, P>;
     routing?: Routing<S>;
 };
