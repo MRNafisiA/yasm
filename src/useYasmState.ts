@@ -90,7 +90,7 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
 
     if (name === routedName && store.state[name][path] === undefined) {
         (store.state[name] as Record<Path, SM[N]['initialState']>)[path] = {
-            ...structuredClone(store.sectionMap[name].initialState),
+            ...store.sectionMap[name].initialState,
             ...overrideInitialState
         };
 
