@@ -11,17 +11,23 @@ type UpdatingKeyAndValue<T extends Record<string, unknown>> = {
 
 const propertyUpdaterGenerator =
     <S extends Record<string, unknown>>() =>
-    (state: S, { key, value }: UpdatingKeyAndValue<S>) => ({
-        ...state,
-        [key]: value
-    });
+        (state: S, { key, value }: UpdatingKeyAndValue<S>) =>
+            state[key] === value
+                ? state
+                : {
+                    ...state,
+                    [key]: value
+                };
 
 const mergeUpdaterGenerator =
     <S extends Record<string, unknown>>() =>
-    (state: S, payload: Partial<S>) => ({
-        ...state,
-        ...payload
-    });
+        (state: S, payload: Partial<S>) =>
+            Object.keys(payload).every(key => state[key] === payload[key])
+                ? state
+                : {
+                    ...state,
+                    ...payload
+                };
 
 // Array composition
 type ArraySection<S, P> = Section<
