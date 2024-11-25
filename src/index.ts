@@ -5,6 +5,7 @@ export {
     type ArraySection,
     type ObjectSection,
     type UpdatingKeyAndValue,
+    getFieldSetter,
     arraySectionGenerator,
     mergeUpdaterGenerator,
     objectSectionGenerator,
