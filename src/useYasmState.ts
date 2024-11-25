@@ -9,6 +9,7 @@ import {
     StateBySectionMap,
     Store
 } from './createStore';
+import { snapshot } from './util';
 
 // Overload 1: Basic use (no selector) or use with a selector
 function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
@@ -122,16 +123,16 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
                             : ''
                     }`
                 );
-                console.debug(JSON.parse(JSON.stringify(_payload)));
+                snapshot(_payload);
                 console.debug('before:');
-                console.debug(JSON.parse(JSON.stringify(store.state)));
+                snapshot(store.state);
             }
 
             store.state[routedName][routedPath] = updater(_payload);
 
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('after:');
-                console.debug(JSON.parse(JSON.stringify(store.state)));
+                snapshot(store.state);
                 console.debug('----end----');
             }
 

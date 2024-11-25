@@ -11,23 +11,23 @@ type UpdatingKeyAndValue<T extends Record<string, unknown>> = {
 
 const propertyUpdaterGenerator =
     <S extends Record<string, unknown>>() =>
-        (state: S, { key, value }: UpdatingKeyAndValue<S>) =>
-            state[key] === value
-                ? state
-                : {
-                    ...state,
-                    [key]: value
-                };
+    (state: S, { key, value }: UpdatingKeyAndValue<S>) =>
+        state[key] === value
+            ? state
+            : {
+                  ...state,
+                  [key]: value
+              };
 
 const mergeUpdaterGenerator =
     <S extends Record<string, unknown>>() =>
-        (state: S, payload: Partial<S>) =>
-            Object.keys(payload).every(key => state[key] === payload[key])
-                ? state
-                : {
-                    ...state,
-                    ...payload
-                };
+    (state: S, payload: Partial<S>) =>
+        Object.keys(payload).every(key => state[key] === payload[key])
+            ? state
+            : {
+                  ...state,
+                  ...payload
+              };
 
 // Array composition
 type ArraySection<S, P> = Section<
@@ -264,7 +264,36 @@ function getFieldSetter<TSection, TField extends keyof TSection>(
     ) => void;
 }
 
+type YasmLogConfigType = {
+    serializer?: (
+        object: Record<string, unknown>,
+        key: string,
+        value: unknown
+    ) => any;
+    deserializer?: (key: string, value: string) => any;
+};
+
+const YasmLogConfig: YasmLogConfigType = {
+    serializer: undefined,
+    deserializer: undefined
+};
+
+const snapshot = (obj: Record<string, unknown>) => {
+    console.debug(
+        JSON.parse(
+            JSON.stringify(obj, function (key, value) {
+                return YasmLogConfig.serializer
+                    ? YasmLogConfig.serializer(this, key, value)
+                    : value;
+            }),
+            YasmLogConfig.deserializer
+        )
+    );
+};
+
 export {
+    snapshot,
+    YasmLogConfig,
     arraySectionGenerator,
     extractArrayIndexAndRemainedPathQuery,
     extractObjectIndexAndRemainedPathQuery,
@@ -276,5 +305,6 @@ export {
     type ObjectSection,
     type ObjectSectionState,
     type SectionWithName,
-    type UpdatingKeyAndValue
+    type UpdatingKeyAndValue,
+    type YasmLogConfigType
 };

@@ -1,5 +1,6 @@
 import { YasmContext } from './Context';
 import { useCallback, useContext } from 'react';
+import { snapshot } from './util';
 
 const usePurgeYasmState = () => {
     const store = useContext(YasmContext);
@@ -8,7 +9,7 @@ const usePurgeYasmState = () => {
             if (process.env.NODE_ENV !== 'production') {
                 console.debug(`purging path starts with ${pathStartsWith}`);
                 console.debug('before:');
-                console.debug(JSON.parse(JSON.stringify(store.state)));
+                snapshot(store.state);
             }
             for (const name in store.state) {
                 for (const path in store.state[name]) {
@@ -32,7 +33,7 @@ const usePurgeYasmState = () => {
             }
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('after:');
-                console.debug(JSON.parse(JSON.stringify(store.state)));
+                snapshot(store.state);
                 console.debug('--------');
             }
         },
