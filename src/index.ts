@@ -4,9 +4,7 @@ export { usePurgeYasmState } from './usePurgeYasmState';
 export {
     type ArraySection,
     type ObjectSection,
-    type YasmLogConfigType,
     type UpdatingKeyAndValue,
-    YasmLogConfig,
     getFieldSetter,
     arraySectionGenerator,
     mergeUpdaterGenerator,
@@ -17,5 +15,6 @@ export {
     type Store,
     type Updater,
     type Section,
+    type DebugOptions,
     createStore
 } from './createStore';

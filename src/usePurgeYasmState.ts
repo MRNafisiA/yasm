@@ -9,7 +9,7 @@ const usePurgeYasmState = () => {
             if (process.env.NODE_ENV !== 'production') {
                 console.debug(`purging path starts with ${pathStartsWith}`);
                 console.debug('before:');
-                snapshot(store.state);
+                snapshot(store.state, store.debugOptions);
             }
             for (const name in store.state) {
                 for (const path in store.state[name]) {
@@ -33,7 +33,7 @@ const usePurgeYasmState = () => {
             }
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('after:');
-                snapshot(store.state);
+                snapshot(store.state, store.debugOptions);
                 console.debug('--------');
             }
         },

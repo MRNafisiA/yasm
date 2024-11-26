@@ -123,16 +123,16 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
                             : ''
                     }`
                 );
-                snapshot(_payload);
+                snapshot(_payload, store.debugOptions);
                 console.debug('before:');
-                snapshot(store.state);
+                snapshot(store.state, store.debugOptions);
             }
 
             store.state[routedName][routedPath] = updater(_payload);
 
             if (process.env.NODE_ENV !== 'production') {
                 console.debug('after:');
-                snapshot(store.state);
+                snapshot(store.state, store.debugOptions);
                 console.debug('----end----');
             }
 

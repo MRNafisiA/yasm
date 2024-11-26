@@ -1,5 +1,5 @@
 import { produce } from 'immer';
-import { Name, Section, Updater } from './createStore';
+import { DebugOptions, Name, Section, Updater } from './createStore';
 
 // updaters
 type UpdatingKeyAndValue<T extends Record<string, unknown>> = {
@@ -264,36 +264,21 @@ function getFieldSetter<TSection, TField extends keyof TSection>(
     ) => void;
 }
 
-type YasmLogConfigType = {
-    serializer?: (
-        object: Record<string, unknown>,
-        key: string,
-        value: unknown
-    ) => any;
-    deserializer?: (key: string, value: string) => any;
-};
-
-const YasmLogConfig: YasmLogConfigType = {
-    serializer: undefined,
-    deserializer: undefined
-};
-
-const snapshot = (obj: Record<string, unknown>) => {
+const snapshot = (obj: Record<string, unknown>, debugOptions: DebugOptions) => {
     console.debug(
         JSON.parse(
             JSON.stringify(obj, function (key, value) {
-                return YasmLogConfig.serializer
-                    ? YasmLogConfig.serializer(this, key, value)
+                return debugOptions.serializer
+                    ? debugOptions.serializer(this, key, value)
                     : value;
             }),
-            YasmLogConfig.deserializer
+            debugOptions.deserializer
         )
     );
 };
 
 export {
     snapshot,
-    YasmLogConfig,
     arraySectionGenerator,
     extractArrayIndexAndRemainedPathQuery,
     extractObjectIndexAndRemainedPathQuery,
@@ -305,6 +290,5 @@ export {
     type ObjectSection,
     type ObjectSectionState,
     type SectionWithName,
-    type UpdatingKeyAndValue,
-    type YasmLogConfigType
+    type UpdatingKeyAndValue
 };
