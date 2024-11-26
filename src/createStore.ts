@@ -53,6 +53,15 @@ type Section<S = any, P = any> = {
     routing?: Routing<S>;
 };
 
+type DebugOptions = {
+    serializer?: (
+        object: Record<string, unknown>,
+        key: string,
+        value: unknown
+    ) => any;
+    deserializer?: (key: string, value: string) => any;
+};
+
 type Store<SM extends Record<Name, Section> = Record<Name, Section>> = {
     state: StateBySectionMap<SM>;
     subscribers: SubscribersBySectionMap<SM>;
@@ -61,10 +70,14 @@ type Store<SM extends Record<Name, Section> = Record<Name, Section>> = {
     pathRegistry: Record<Name, Path[]>;
     routingPlan: RoutingPlan<SM>;
     memo: Memo<SM>;
+    debugOptions: DebugOptions;
 };
 
 const createStore = <SM extends Record<Name, Section>>(
-    sectionMap: SM
+    sectionMap: SM,
+    options?: {
+        debugOptions?: DebugOptions;
+    }
 ): Store<SM> => {
     let counter = 0;
     const names: (keyof SM)[] = Object.keys(sectionMap);
@@ -125,7 +138,11 @@ const createStore = <SM extends Record<Name, Section>>(
         memo: names.reduce((pre, name) => {
             pre[name] = {};
             return pre;
-        }, {} as Memo<SM>)
+        }, {} as Memo<SM>),
+        debugOptions: options?.debugOptions ?? {
+            serializer: undefined,
+            deserializer: undefined
+        }
     };
 };
 
@@ -141,6 +158,7 @@ export type {
     RoutingPlan,
     Memo,
     Section,
-    Store
+    Store,
+    DebugOptions
 };
 export { createStore };

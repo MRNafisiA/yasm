@@ -5,6 +5,7 @@ export {
     type ArraySection,
     type ObjectSection,
     type UpdatingKeyAndValue,
+    getFieldSetter,
     arraySectionGenerator,
     mergeUpdaterGenerator,
     objectSectionGenerator,
@@ -14,5 +15,6 @@ export {
     type Store,
     type Updater,
     type Section,
+    type DebugOptions,
     createStore
 } from './createStore';
