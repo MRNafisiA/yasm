@@ -1,5 +1,5 @@
 import { produce } from 'immer';
-import { Name, Section, Updater } from './createStore';
+import { DebugOptions, Name, Section, Updater } from './createStore';
 
 // updaters
 type UpdatingKeyAndValue<T extends Record<string, unknown>> = {
@@ -11,23 +11,23 @@ type UpdatingKeyAndValue<T extends Record<string, unknown>> = {
 
 const propertyUpdaterGenerator =
     <S extends Record<string, unknown>>() =>
-        (state: S, { key, value }: UpdatingKeyAndValue<S>) =>
-            state[key] === value
-                ? state
-                : {
-                    ...state,
-                    [key]: value
-                };
+    (state: S, { key, value }: UpdatingKeyAndValue<S>) =>
+        state[key] === value
+            ? state
+            : {
+                  ...state,
+                  [key]: value
+              };
 
 const mergeUpdaterGenerator =
     <S extends Record<string, unknown>>() =>
-        (state: S, payload: Partial<S>) =>
-            Object.keys(payload).every(key => state[key] === payload[key])
-                ? state
-                : {
-                    ...state,
-                    ...payload
-                };
+    (state: S, payload: Partial<S>) =>
+        Object.keys(payload).every(key => state[key] === payload[key])
+            ? state
+            : {
+                  ...state,
+                  ...payload
+              };
 
 // Array composition
 type ArraySection<S, P> = Section<
@@ -264,7 +264,21 @@ function getFieldSetter<TSection, TField extends keyof TSection>(
     ) => void;
 }
 
+const snapshot = (obj: Record<string, unknown>, debugOptions: DebugOptions) => {
+    console.debug(
+        JSON.parse(
+            JSON.stringify(obj, function (key, value) {
+                return debugOptions.serializer
+                    ? debugOptions.serializer(this, key, value)
+                    : value;
+            }),
+            debugOptions.deserializer
+        )
+    );
+};
+
 export {
+    snapshot,
     arraySectionGenerator,
     extractArrayIndexAndRemainedPathQuery,
     extractObjectIndexAndRemainedPathQuery,
