@@ -289,12 +289,19 @@ const getExtraRoutes = <SM extends Record<Name, Section>, N extends keyof SM>(
                     }
                     return selectedState;
                 },
-                payload =>
-                    updateByPathQuery(
+                payload => {
+                    // This prevents errors when the updater is triggered asynchronously
+                    // (e.g., in a `setTimeout`, `.then`, or other delayed executions) where the state might have been purged already.
+                    if (store.state[name][foundPath] === undefined) {
+                        return;
+                    }
+
+                    return updateByPathQuery(
                         store.state[name][foundPath],
                         pathQuery,
                         payload
-                    )
+                    );
+                }
             ];
         }
         const routingInfo = getExtraRoutes(store, [name, ...names], path);
