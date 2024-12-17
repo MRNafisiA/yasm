@@ -162,9 +162,15 @@ const route = <SM extends Record<Name, Section>, N extends keyof SM>(
         path,
         () => store.state[name][path],
         payload =>
-            produce(store.state[name][path], (draft: any) =>
-                store.sectionMap[name].updater(draft, payload)
-            )
+            produce(store.state[name][path], (draft: any) => {
+                // This prevents errors when the updater is triggered asynchronously
+                // (e.g., in a `setTimeout`, `.then`, or other delayed executions) where the state might have been purged already.
+                if (store.state[name][path] === undefined) {
+                    return;
+                }
+
+                return store.sectionMap[name].updater(draft, payload);
+            })
     ];
 };
 
