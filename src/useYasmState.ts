@@ -11,6 +11,13 @@ import {
 } from './createStore';
 import { snapshot } from './util';
 
+type OverrideInitialState<
+    SM extends Record<Name, Section>,
+    N extends keyof SM
+> =
+    | Partial<SM[N]['initialState']>
+    | ((initialState: SM[N]['initialState']) => Partial<SM[N]['initialState']>);
+
 // Overload 1: Basic use (no selector) or use with a selector
 function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
     name: N,
@@ -27,7 +34,7 @@ function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
     path: Path,
     options: {
         selector?: (state: SM[N]['initialState']) => S;
-        overrideInitialState?: Partial<SM[N]['initialState']>;
+        overrideInitialState?: OverrideInitialState<SM, N>;
     }
 ): [
     unknown extends S ? SM[N]['initialState'] : S,
@@ -41,7 +48,7 @@ function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
         | ((state: SM[N]['initialState']) => S)
         | {
               selector?: (state: SM[N]['initialState']) => S;
-              overrideInitialState?: Partial<SM[N]['initialState']>;
+              overrideInitialState?: OverrideInitialState<SM, N>;
           }
 ): [
     unknown extends S ? SM[N]['initialState'] : S,
@@ -50,7 +57,7 @@ function useYasmState<SM extends Record<Name, Section>, N extends keyof SM, S>(
     const store = useContext(YasmContext) as Store<SM>;
 
     let selector: ((state: SM[N]['initialState']) => S) | undefined;
-    let overrideInitialState: Partial<SM[N]['initialState']> | undefined;
+    let overrideInitialState: OverrideInitialState<SM, N> | undefined;
 
     if (typeof thirdParam === 'function') {
         selector = thirdParam;
@@ -81,7 +88,7 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
     store: Store<SM>,
     name: N,
     path: Path,
-    overrideInitialState?: Partial<SM[N]['initialState']>
+    overrideInitialState?: OverrideInitialState<SM, N>
 ) => {
     const [routedName, routedPath, getState, updater] = route(
         store,
@@ -92,7 +99,9 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
     if (name === routedName && store.state[name][path] === undefined) {
         (store.state[name] as Record<Path, SM[N]['initialState']>)[path] = {
             ...store.sectionMap[name].initialState,
-            ...overrideInitialState
+            ...(typeof overrideInitialState === 'function'
+                ? overrideInitialState(store.sectionMap[name].initialState)
+                : overrideInitialState)
         };
 
         if (store.sectionMap[name].routing !== undefined) {
