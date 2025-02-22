@@ -114,13 +114,20 @@ const init = <SM extends Record<Name, Section>, N extends keyof SM>(
             store.subscribe(callback, routedName, routedPath),
         getState,
         updater: payload => {
+            // This prevents errors when the updater is triggered asynchronously
+            // (e.g., in a `setTimeout`, `.then`, or other delayed executions) where the state might have been purged already.
+            const currentState = getState();
+            if (currentState === undefined) {
+                return;
+            }
+
             const _payload =
                 typeof payload === 'function'
                     ? (
                           payload as (
                               state: SM[N]['initialState']
                           ) => Parameters<SM[N]['updater']>[1]
-                      )(getState())
+                      )(currentState)
                     : payload;
 
             if (process.env.NODE_ENV !== 'production') {
@@ -172,12 +179,6 @@ const route = <SM extends Record<Name, Section>, N extends keyof SM>(
         () => store.state[name][path],
         payload =>
             produce(store.state[name][path], (draft: any) => {
-                // This prevents errors when the updater is triggered asynchronously
-                // (e.g., in a `setTimeout`, `.then`, or other delayed executions) where the state might have been purged already.
-                if (store.state[name][path] === undefined) {
-                    return;
-                }
-
                 return store.sectionMap[name].updater(draft, payload);
             })
     ];
@@ -299,12 +300,6 @@ const getExtraRoutes = <SM extends Record<Name, Section>, N extends keyof SM>(
                     return selectedState;
                 },
                 payload => {
-                    // This prevents errors when the updater is triggered asynchronously
-                    // (e.g., in a `setTimeout`, `.then`, or other delayed executions) where the state might have been purged already.
-                    if (store.state[name][foundPath] === undefined) {
-                        return;
-                    }
-
                     return updateByPathQuery(
                         store.state[name][foundPath],
                         pathQuery,
