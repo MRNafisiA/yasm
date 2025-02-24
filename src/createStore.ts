@@ -105,6 +105,17 @@ const createStore = <SM extends Record<Name, Section>>(
                 };
             }
             return () => {
+                if (subscribers[name]?.[path]?.[id] === undefined) {
+                    console.warn(
+                        [
+                            `YASM [Warning]: The state of "${name.toString()}" at path "${path}" has been purged before its dependent components were unmounted!`,
+                            `(Dependent components are those that read and use this state.)`,
+                            `Ensure that the purge action occurs at the right time (when all dependent components are unmounted) by using "useEffect" or "setTimeout" to prevent premature state purging.`
+                        ].join('\n')
+                    );
+                    return;
+                }
+
                 delete subscribers[name][path][id];
             };
         },
